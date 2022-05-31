@@ -1,16 +1,13 @@
 package engine
 
-const (
-	normal  = 0
-	enpass  = 1
-	castle  = 2
-	promote = 3
-)
-
 type Move struct {
-	to        int
-	from      int
-	capturing int
-	player    int
-	moveKind  int
+	to   int
+	from int
+}
+
+func (move *Move) FromUCI(uci string) {
+	from := uci[0:2]
+	to := uci[2:4]
+	move.to = SquareToIndex(to)
+	move.from = SquareToIndex(from)
 }

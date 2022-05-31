@@ -7,7 +7,12 @@ import (
 
 func main() {
 	var position engine.Position
-	position.FromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	var move engine.Move
+
+	position.FromFEN("rnbqkbnr/ppp1ppp1/8/3pP2p/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3")
 	fmt.Print(position.String())
-	fmt.Print(position.ToFEN())
+
+	move.FromUCI("e5d6")
+	position.Make(move)
+	fmt.Print((position.String()))
 }

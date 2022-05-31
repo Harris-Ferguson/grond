@@ -7,10 +7,12 @@ import (
 )
 
 const (
+	// SIDE
 	white  = 0
 	black  = 1
 	noSide = 2
 
+	// PIECE
 	pawn   = 0
 	knight = 1
 	bishop = 2
@@ -18,6 +20,12 @@ const (
 	queen  = 4
 	king   = 5
 	noKind = 6
+
+	// MOVE TYPE
+	normal  = 0
+	enpass  = 1
+	castle  = 2
+	promote = 3
 
 	noPiece = "-"
 )
@@ -74,17 +82,18 @@ var CharToPiece map[byte]Piece = map[byte]Piece{
 	'k': {king, black},
 }
 
-var IndexToSquare [64]string = [64]string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8",
-	"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8",
-	"C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
-	"D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8",
-	"E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
-	"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8",
-	"G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8",
-	"H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8",
+var IndexToSquare [64]string = [64]string{
+	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+	"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+	"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+	"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+	"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+	"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 }
 
-func squareToIndex(square string) int {
+func SquareToIndex(square string) int {
 	for i, v := range IndexToSquare {
 		if v == square {
 			return i
@@ -93,12 +102,18 @@ func squareToIndex(square string) int {
 	return -1
 }
 
-func (position *Position) make(move Move) {
+func (position *Position) decideMoveKind(move Move, moving Piece) int {
+	if move.to == position.enpassant {
+		return enpass
+	}
+	return normal //TODO IMPLEMENT THE OTHERS
+}
+
+func (position *Position) Make(move Move) {
 	to := move.to
 	from := move.from
-	moveKind := move.moveKind
 	moving := position.board[from]
-	capturing := move.capturing
+	moveKind := position.decideMoveKind(move, moving)
 
 	switch moveKind {
 	case normal:
@@ -106,11 +121,17 @@ func (position *Position) make(move Move) {
 		position.remove(to)
 		position.place(moving, to)
 	case enpass:
-		position.remove(from)
-		position.remove(capturing)
 		position.place(moving, to)
+		position.remove(from)
+		if moving.side == black {
+			position.remove(to - 8)
+		} else {
+			position.remove(to + 8)
+		}
 	case castle:
+		// TODO
 	case promote:
+		// TODO
 	}
 
 	if position.turn == white {
@@ -127,6 +148,10 @@ func (position *Position) place(piece Piece, square int) {
 func (position *Position) remove(square int) {
 	position.board[square].kind = noKind
 	position.board[square].side = noSide
+}
+
+func (position *Position) getPieceAt(square int) Piece {
+	return position.board[square]
 }
 
 func coordToIndex(row int, col int) int {
@@ -249,7 +274,7 @@ func (position *Position) FromFEN(fen string) {
 		position.turn = black
 	}
 	// enpassant
-	position.enpassant = squareToIndex(enpassant)
+	position.enpassant = SquareToIndex(enpassant)
 	// castling
 	position.castling.whiteKing = CharToPiece[castling[0]]
 	position.castling.whiteQueen = CharToPiece[castling[1]]
