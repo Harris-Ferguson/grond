@@ -35,6 +35,8 @@ type Piece struct {
 	side int
 }
 
+var NO_PIECE = Piece{noKind, noSide}
+
 type Castling struct {
 	whiteQueen Piece
 	whiteKing  Piece
@@ -103,8 +105,24 @@ func SquareToIndex(square string) int {
 }
 
 func (position *Position) decideMoveKind(move Move, moving Piece) int {
+	// enpass
 	if move.to == position.enpassant {
 		return enpass
+	}
+	// castling
+	if moving.kind == king {
+		if moving.side == white && IndexToSquare[move.to] == "g1" && position.castling.whiteKing != NO_PIECE {
+			return castle
+		}
+		if moving.side == white && IndexToSquare[move.to] == "c1" && position.castling.whiteQueen != NO_PIECE {
+			return castle
+		}
+		if moving.side == black && IndexToSquare[move.to] == "g8" && position.castling.blackKing != NO_PIECE {
+			return castle
+		}
+		if moving.side == black && IndexToSquare[move.to] == "c8" && position.castling.blackQueen != NO_PIECE {
+			return castle
+		}
 	}
 	return normal //TODO IMPLEMENT THE OTHERS
 }
@@ -129,7 +147,31 @@ func (position *Position) Make(move Move) {
 			position.remove(to + 8)
 		}
 	case castle:
-		// TODO
+		if moving.side == white && IndexToSquare[move.to] == "g1" {
+			position.remove(from)
+			rook := position.getPieceAt(SquareToIndex("h1"))
+			position.remove(SquareToIndex("h1"))
+			position.place(rook, SquareToIndex("f1"))
+			position.place(moving, to)
+		} else if moving.side == white && IndexToSquare[move.to] == "c1" {
+			position.remove(from)
+			rook := position.getPieceAt(SquareToIndex("a1"))
+			position.remove(SquareToIndex("a1"))
+			position.place(rook, SquareToIndex("d1"))
+			position.place(moving, to)
+		} else if moving.side == black && IndexToSquare[move.to] == "g8" {
+			position.remove(from)
+			rook := position.getPieceAt(SquareToIndex("h8"))
+			position.remove(SquareToIndex("h8"))
+			position.place(rook, SquareToIndex("f8"))
+			position.place(moving, to)
+		} else if moving.side == black && IndexToSquare[move.to] == "c8" {
+			position.remove(from)
+			rook := position.getPieceAt(SquareToIndex("a8"))
+			position.remove(SquareToIndex("a8"))
+			position.place(rook, SquareToIndex("d8"))
+			position.place(moving, to)
+		}
 	case promote:
 		// TODO
 	}
