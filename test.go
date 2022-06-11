@@ -36,4 +36,11 @@ func main() {
 	move.FromUCI("e8c8")
 	position.Make(move)
 	fmt.Print((position.String()))
+
+	fmt.Print("Promoting Piece")
+	position.FromFEN("8/1K5k/6pP/6P1/8/8/4p3/8 b - - 1 5")
+	fmt.Print(position.String())
+	move.FromUCI("e2e1q")
+	position.Make(move)
+	fmt.Print(position.String())
 }

@@ -82,6 +82,7 @@ var CharToPiece map[byte]Piece = map[byte]Piece{
 	'q': {queen, black},
 	'K': {king, white},
 	'k': {king, black},
+	'-': NO_PIECE,
 }
 
 var IndexToSquare [64]string = [64]string{
@@ -124,7 +125,10 @@ func (position *Position) decideMoveKind(move Move, moving Piece) int {
 			return castle
 		}
 	}
-	return normal //TODO IMPLEMENT THE OTHERS
+	if move.promoteTo != NO_PIECE {
+		return promote
+	}
+	return normal
 }
 
 func (position *Position) Make(move Move) {
@@ -173,7 +177,8 @@ func (position *Position) Make(move Move) {
 			position.place(moving, to)
 		}
 	case promote:
-		// TODO
+		position.remove(from)
+		position.place(move.promoteTo, to)
 	}
 
 	if position.turn == white {
@@ -318,10 +323,30 @@ func (position *Position) FromFEN(fen string) {
 	// enpassant
 	position.enpassant = SquareToIndex(enpassant)
 	// castling
-	position.castling.whiteKing = CharToPiece[castling[0]]
-	position.castling.whiteQueen = CharToPiece[castling[1]]
-	position.castling.blackKing = CharToPiece[castling[2]]
-	position.castling.blackQueen = CharToPiece[castling[3]]
+	if len(castling) == 4 {
+		position.castling.whiteKing = CharToPiece[castling[0]]
+		position.castling.whiteQueen = CharToPiece[castling[1]]
+		position.castling.blackKing = CharToPiece[castling[2]]
+		position.castling.blackQueen = CharToPiece[castling[3]]
+	} else if len(castling) == 2 {
+		side := CharToPiece[castling[0]].side
+		if side == white {
+			position.castling.whiteKing = CharToPiece[castling[0]]
+			position.castling.whiteQueen = CharToPiece[castling[1]]
+			position.castling.blackKing = NO_PIECE
+			position.castling.blackQueen = NO_PIECE
+		} else {
+			position.castling.whiteKing = NO_PIECE
+			position.castling.whiteQueen = NO_PIECE
+			position.castling.blackKing = CharToPiece[castling[0]]
+			position.castling.blackQueen = CharToPiece[castling[1]]
+		}
+	} else if len(castling) == 2 {
+		position.castling.whiteKing = NO_PIECE
+		position.castling.whiteQueen = NO_PIECE
+		position.castling.blackKing = NO_PIECE
+		position.castling.blackQueen = NO_PIECE
+	}
 	// halfmove clock
 	halfmoves, err := strconv.Atoi(halfmove)
 	if err != nil {
