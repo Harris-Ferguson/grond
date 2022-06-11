@@ -247,7 +247,7 @@ func (position *Position) ToFEN() string {
 		fen += "w"
 	}
 	fen += " "
-	// castling
+	// castling TODO MOFIDY THIS TO HANDLE OTHER CASTLING STATES (only black etc)
 	fen += PieceToChar[position.castling.whiteKing]
 	fen += PieceToChar[position.castling.whiteQueen]
 	fen += PieceToChar[position.castling.blackKing]
